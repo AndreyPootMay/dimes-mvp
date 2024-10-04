@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulación de Máquina</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.3.3/darkly/bootstrap.min.css">
+
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          text-align: center;
+          margin-top: 50px;
+        }
+        button {
+          font-size: 18px;
+          padding: 10px 20px;
+          margin: 20px;
+          cursor: pointer;
+        }
+      </style>
+  </head>
+  <body>
+    <h1>Máquina de Monedas - MACHINE_001</h1>
+
+    <p><strong>Monedas:</strong> <span id="dime-count">0</span></p>
+    <p><strong>Interruptor:</strong> <span id="interruptor-count">0</span></p>
+    <p>
+      <strong>Última moneda insertada:</strong>
+      <span id="last-dime-inserted">N/A</span>
+    </p>
+
+    <button id="insert-dime" class="btn btn-warning">Insertar Moneda</button>
+    <button id="push-coins" class="btn btn-success">Empujar Monedas</button>
+
+    <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase.js"></script>
+
+    <script>
+      // Tu configuración de Firebase
+      var firebaseConfig = {
+        apiKey: "AIzaSyDd4wDCevyjpeqS4Wamv5Zvw2bk6qXmhnw",
+        authDomain: "dimes-counter.firebaseapp.com",
+        databaseURL: "https://dimes-counter-default-rtdb.firebaseio.com/",
+        projectId: "dimes-counter",
+        storageBucket: "dimes-counter.appspot.com",
+        messagingSenderId: "778618074245",
+        appId: "1:778618074245:web:5fa18d3c8d228441cbe5ec",
+      };
+
+      // Inicializa Firebase
+      firebase.initializeApp(firebaseConfig);
+
+      var database = firebase.database();
+
+      // Referencia a la máquina
+      var machineRef = database.ref("MACHINE_001");
+
+      // Elementos del DOM
+      var dimeCountElement = document.getElementById("dime-count");
+      var interruptorCountElement =
+        document.getElementById("interruptor-count");
+      var lastDimeInsertedElement =
+        document.getElementById("last-dime-inserted");
+
+      // Actualiza la UI con los datos de Firebase
+      machineRef.on("value", (snapshot) => {
+        var data = snapshot.val();
+        console.log(data);
+
+        dimeCountElement.textContent = data.dimes;
+        interruptorCountElement.textContent = data.interruptor_times;
+        lastDimeInsertedElement.textContent = new Date(
+          data.last_dime_inserted * 1000
+        ).toLocaleString();
+      });
+
+      // Función para obtener el tiempo actual en formato Epoch
+      var getCurrentEpochTime = () => Math.floor(Date.now() / 1000);
+
+      // Botón para simular la inserción de una moneda
+      document.getElementById("insert-dime").addEventListener("click", () => {
+        console.log('Hello');
+        machineRef.transaction((machine) => {
+          if (machine) {
+            machine.dimes += 1;
+            machine.last_dime_inserted = getCurrentEpochTime();
+          }
+          return machine;
+        });
+      });
+
+      // Botón para simular la activación del interruptor
+      document.getElementById("push-coins").addEventListener("click", () => {
+        machineRef.transaction((machine) => {
+          if (machine) {
+            machine.interruptor_times += 1;
+          }
+          return machine;
+        });
+      });
+    </script>
+  </body>
+</html>
